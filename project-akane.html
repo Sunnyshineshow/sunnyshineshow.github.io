@@ -36,6 +36,10 @@
   --serif:      'Cormorant Garamond', serif;
   --sans:       'Inter', sans-serif;
   --brush:      'Yuji Syuku', serif;
+
+  --ease:       cubic-bezier(.2,0,.2,1);
+  --dur:        .8s;
+  --dur-slow:   1.2s;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -64,11 +68,19 @@ body::before {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='5'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.09 0 0 0 0 0.13 0 0 0 .07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
+/* ── FOCUS STATES ── */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--crimson);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
 /* =========== FALLING PETALS ========== */
 .petals { position: fixed; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
 .petal {
   position: absolute;
-  width: 14px; height: 14px;
   top: -20px;
   background: radial-gradient(ellipse at 30% 30%, var(--sakura-blush), var(--sakura) 60%, var(--sakura-deep));
   border-radius: 70% 30% 70% 30% / 30% 70% 30% 70%;
@@ -76,10 +88,11 @@ body::before {
   filter: drop-shadow(0 2px 3px rgba(232,154,168,.4));
   animation: fall linear infinite;
 }
+.petal.blurred { filter: drop-shadow(0 2px 3px rgba(232,154,168,.4)) blur(.5px); }
 @keyframes fall {
   0% { transform: translate(0, -20px) rotate(0deg) scale(.9); opacity: 0; }
-  10% { opacity: .9; }
-  90% { opacity: .9; }
+  10% { opacity: var(--petal-opacity, .8); }
+  90% { opacity: var(--petal-opacity, .8); }
   100% { transform: translate(var(--drift, 80px), 110vh) rotate(720deg) scale(1.1); opacity: 0; }
 }
 
@@ -110,6 +123,24 @@ body::before {
   transform: translate(-50%, -50%);
   transition: width .25s, height .25s, border-color .25s;
 }
+
+/* =========== VERTICAL JP STRIP (desktop) ========== */
+.vstrip {
+  position: fixed;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  font-family: var(--brush);
+  font-size: 16px;
+  letter-spacing: .5em;
+  color: var(--violet);
+  opacity: .15;
+  z-index: 50;
+  pointer-events: none;
+  user-select: none;
+}
+@media (max-width: 1000px) { .vstrip { display: none; } }
 
 /* =========== NAV ========== */
 .nav {
@@ -170,6 +201,8 @@ body::before {
 }
 .nav-links a:hover { color: var(--ink); }
 .nav-links a:hover::after { transform: scaleX(1); transform-origin: left; }
+.nav-links a.active { color: var(--ink); }
+.nav-links a.active::after { transform: scaleX(1); }
 
 .lang-toggle {
   display: flex;
@@ -203,6 +236,8 @@ body::before {
   .nav { padding: 16px 22px; }
   .nav.scrolled { padding: 10px 22px; }
   .nav-links { display: none; }
+  .lang-toggle { font-size: 10px; }
+  .lang-toggle button { padding: 5px 10px; }
 }
 
 /* =========== HERO ========== */
@@ -311,6 +346,7 @@ body::before {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Hero image with parallax + light sweep */
 .hero-image {
   position: relative;
   overflow: hidden;
@@ -319,10 +355,17 @@ body::before {
 }
 .hero-image img {
   position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
+  inset: -5%;
+  width: 110%; height: 110%;
   object-fit: cover;
   object-position: center;
+  will-change: transform;
+  opacity: 0;
+  animation: hero-img-in 1.5s .1s forwards;
+}
+@keyframes hero-img-in {
+  from { opacity: 0; transform: scale(1.05); }
+  to { opacity: 1; transform: scale(1); }
 }
 .hero-image::before {
   content: "";
@@ -331,18 +374,20 @@ body::before {
   background: linear-gradient(110deg, rgba(247,241,234,.45) 0%, transparent 40%);
   z-index: 1;
 }
+/* Light sweep */
 .hero-image::after {
-  content: "桜";
+  content: "";
   position: absolute;
-  top: 40px; right: 50px;
-  font-family: var(--brush);
-  font-size: 120px;
-  color: rgba(255,255,255,.5);
-  line-height: 1;
-  mix-blend-mode: overlay;
+  top: 0; left: -50%;
+  width: 40%; height: 100%;
+  background: linear-gradient(110deg, transparent, rgba(255,255,255,.08), transparent);
   z-index: 2;
+  animation: light-sweep 8s ease-in-out infinite;
 }
-
+@keyframes light-sweep {
+  0%, 100% { left: -50%; }
+  50% { left: 110%; }
+}
 .hero-vertical {
   position: absolute;
   right: 32px;
@@ -398,9 +443,62 @@ body::before {
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; min-height: auto; }
   .hero-image { height: 50vh; order: -1; border-left: 0; border-bottom: 1px solid var(--rule); }
+  .hero-image img { inset: 0; width: 100%; height: 100%; }
   .hero-text { padding: 100px 28px 60px; }
   .hero-vertical { display: none; }
   .scroll-indicator { left: 28px; }
+}
+
+/* =========== DOSSIER PANEL (desktop) ========== */
+.dossier {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  background: rgba(251,247,242,.9);
+  border: 1px solid var(--rule-soft);
+  backdrop-filter: blur(10px);
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+  transition: opacity .4s, transform .4s;
+  opacity: 0;
+  pointer-events: none;
+}
+.dossier.visible { opacity: 1; pointer-events: auto; }
+.dossier-mark {
+  font-family: var(--brush);
+  font-size: 14px;
+  color: var(--crimson);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dossier-mark::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--rule-soft);
+}
+.dossier-label {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.dossier-status {
+  font-family: var(--serif-jp);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  transition: opacity .3s;
+}
+@media (max-width: 1100px) {
+  .dossier { display: none; }
 }
 
 /* =========== SECTION BASE ========== */
@@ -482,6 +580,7 @@ section { position: relative; z-index: 3; }
   border-radius: 4px;
   box-shadow: var(--shadow);
   background: var(--paper-edge);
+  margin-top: -40px;
 }
 .intro-portrait img {
   width: 100%; height: 100%;
@@ -535,7 +634,7 @@ section { position: relative; z-index: 3; }
   position: relative;
 }
 .intro-prose .pullquote::before {
-  content: "“";
+  content: "\201C";
   position: absolute;
   left: 12px;
   top: -8px;
@@ -547,6 +646,7 @@ section { position: relative; z-index: 3; }
 @media (max-width: 900px) {
   .intro-grid { grid-template-columns: 1fr; gap: 40px; }
   .intro-prose p { font-size: 18px; }
+  .intro-portrait { margin-top: 0; }
 }
 
 /* =========== PROFILE CARDS ========== */
@@ -998,9 +1098,32 @@ section { position: relative; z-index: 3; }
   right: -40px;
   font-family: var(--brush);
   font-size: 360px;
-  color: rgba(91,62,122,.04);
+  color: rgba(91,62,122,.06);
   line-height: 1;
   pointer-events: none;
+}
+/* Rotating seal */
+.origin-seal {
+  position: absolute;
+  bottom: 60px;
+  right: 64px;
+  width: 60px; height: 60px;
+  border: 1.5px solid var(--crimson);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--brush);
+  font-size: 28px;
+  color: var(--crimson);
+  opacity: .3;
+  animation: rotate-seal 80s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes rotate-seal {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 .origin-grid {
   display: grid;
@@ -1103,6 +1226,47 @@ section { position: relative; z-index: 3; }
 
 @media (max-width: 900px) {
   .origin-grid { grid-template-columns: 1fr; gap: 40px; }
+  .origin-seal { display: none; }
+}
+
+/* =========== MARQUEE TICKER ========== */
+.marquee-strip {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 14px 0;
+  overflow: hidden;
+  position: relative;
+  z-index: 3;
+  border-top: 1px solid rgba(247,241,234,.1);
+  border-bottom: 1px solid rgba(247,241,234,.1);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+.marquee-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 32px;
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: rgba(247,241,234,.6);
+  white-space: nowrap;
+}
+.marquee-dot {
+  width: 4px; height: 4px;
+  background: var(--sakura);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 /* =========== INSTAGRAM ========== */
@@ -1187,7 +1351,7 @@ section { position: relative; z-index: 3; }
   background: var(--violet);
   transform: translateX(4px);
 }
-.ig-cta::after { content: "→"; font-size: 16px; letter-spacing: 0; }
+.ig-cta::after { content: "\2192"; font-size: 16px; letter-spacing: 0; }
 
 .ig-embed-wrapper {
   position: relative;
@@ -1262,6 +1426,7 @@ section { position: relative; z-index: 3; }
 
 @media (max-width: 900px) {
   .ig-layout { grid-template-columns: 1fr; gap: 40px; }
+  .ig-embed-wrapper { min-height: 400px; }
 }
 
 /* =========== FOOTER ========== */
@@ -1327,7 +1492,7 @@ footer {
   gap: 14px;
 }
 .footer-bottom .sakura-line { display: flex; gap: 6px; align-items: center; }
-.footer-bottom .sakura-line::before { content: "❀"; color: var(--sakura); }
+.footer-bottom .sakura-line::before { content: "\2740"; color: var(--sakura); }
 
 @media (max-width: 800px) {
   footer { padding: 40px 24px 24px; }
@@ -1356,6 +1521,31 @@ footer {
 .reveal-stagger.visible > *:nth-child(6) { transition-delay: .4s; }
 .reveal-stagger.visible > *:nth-child(7) { transition-delay: .48s; }
 .reveal-stagger.visible > *:nth-child(8) { transition-delay: .56s; }
+
+/* Stagger gallery items with alternating direction */
+.gallery-grid.reveal-stagger.visible > *:nth-child(odd) { transform: translateX(0); }
+.gallery-grid.reveal-stagger > *:nth-child(odd) { transform: translateY(20px) translateX(-12px); }
+.gallery-grid.reveal-stagger > *:nth-child(even) { transform: translateY(20px) translateX(12px); }
+.gallery-grid.reveal-stagger.visible > *:nth-child(even) { transform: translateX(0); }
+
+/* =========== REDUCED MOTION ========== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal, .reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .petals { display: none !important; }
+  .hero-image::after { display: none !important; }
+  .origin-seal { animation: none !important; }
+  .marquee-track { animation: none !important; }
+  .scroll-line::after { animation: none !important; }
+}
 </style>
 </head>
 <body>
@@ -1364,8 +1554,11 @@ footer {
 <div class="petals" id="petals" aria-hidden="true"></div>
 
 <!-- Custom cursor -->
-<div class="cursor-dot" id="cursorDot"></div>
-<div class="cursor-ring" id="cursorRing"></div>
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
+<!-- Vertical JP strip -->
+<div class="vstrip" aria-hidden="true">桜井 茜</div>
 
 <!-- ========== NAVIGATION ========== -->
 <nav class="nav" id="nav">
@@ -1382,11 +1575,18 @@ footer {
     <li><a href="#origin" data-i18n="navOrigin">Origin</a></li>
     <li><a href="#instagram" data-i18n="navInstagram">Instagram</a></li>
   </ul>
-  <div class="lang-toggle">
-    <button data-lang="en" class="active">EN</button>
-    <button data-lang="ja">JP</button>
+  <div class="lang-toggle" role="group" aria-label="Language selection">
+    <button data-lang="en" class="active" aria-label="English">EN</button>
+    <button data-lang="ja" aria-label="Japanese">JP</button>
   </div>
 </nav>
+
+<!-- ========== DOSSIER PANEL (desktop) ========== -->
+<div class="dossier" id="dossier" aria-hidden="true">
+  <div class="dossier-mark">桜</div>
+  <div class="dossier-label">Status</div>
+  <div class="dossier-status" id="dossierStatus">Personal Secretary</div>
+</div>
 
 <!-- ========== HERO ========== -->
 <section class="hero">
@@ -1413,13 +1613,12 @@ footer {
     </div>
   </div>
   <div class="hero-image">
-    <!-- IMAGE 1: sakura train tracks (full bleed background) -->
-    <img src="images/hero.png" alt="Akane under cherry blossoms" />
-    <div class="hero-vertical">桜の下、静かに、確かに。</div>
+    <img src="images/hero.png" alt="Akane under cherry blossoms" id="heroImg" />
+    <div class="hero-vertical" aria-hidden="true">桜の下、静かに、確かに。</div>
   </div>
   <div class="scroll-indicator">
     <span data-i18n="scroll">Scroll</span>
-    <div class="scroll-line"></div>
+    <div class="scroll-line" aria-hidden="true"></div>
   </div>
 </section>
 
@@ -1430,11 +1629,10 @@ footer {
     <h2 class="section-title" data-i18n="aboutTitle">A quiet presence.</h2>
     <span class="section-title-jp">あかね</span>
   </div>
-  <div class="section-rule reveal"></div>
+  <div class="section-rule reveal" aria-hidden="true"></div>
   <div class="intro-grid">
     <div class="intro-portrait reveal">
-      <!-- IMAGE 4: red-glasses close portrait -->
-      <img src="images/portrait.png" alt="Akane Sakurai portrait" />
+      <img src="images/portrait.png" alt="Akane Sakurai portrait" loading="lazy" />
       <div class="intro-portrait-label" data-i18n="portraitLabel">Portrait · No. 01</div>
     </div>
     <div class="intro-prose reveal">
@@ -1452,72 +1650,72 @@ footer {
     <h2 class="section-title" data-i18n="profileTitle">A brief profile.</h2>
     <span class="section-title-jp">プロフィール</span>
   </div>
-  <div class="section-rule reveal"></div>
+  <div class="section-rule reveal" aria-hidden="true"></div>
 
   <div class="profile-grid reveal-stagger">
 
     <div class="profile-card">
-      <div class="profile-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a4 4 0 014 4v2a4 4 0 11-8 0V6a4 4 0 014-4zM4 20a8 8 0 0116 0v1H4v-1z"/></svg></div>
+      <div class="profile-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a4 4 0 014 4v2a4 4 0 11-8 0V6a4 4 0 014-4zM4 20a8 8 0 0116 0v1H4v-1z"/></svg></div>
       <div class="profile-card-label" data-i18n="pcLabel1">Personality</div>
       <div class="profile-card-title" data-i18n="pcTitle1">Calm. Composed. Caring.</div>
       <div class="profile-card-text" data-i18n="pcText1">Highly organized, detail-oriented, polite, and quietly caring toward those around her.</div>
-      <div class="jp-watermark">心</div>
+      <div class="jp-watermark" aria-hidden="true">心</div>
     </div>
 
     <div class="profile-card">
-      <div class="profile-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="20" cy="18" r="2"/></svg></div>
+      <div class="profile-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="20" cy="18" r="2"/></svg></div>
       <div class="profile-card-label" data-i18n="pcLabel2">Hobbies</div>
       <div class="profile-card-title" data-i18n="pcTitle2">The quiet behind the scenes.</div>
       <div class="profile-card-text" data-i18n="pcText2">Organizing documents, preparing schedules, and supporting others smoothly behind the scenes.</div>
-      <div class="jp-watermark">趣</div>
+      <div class="jp-watermark" aria-hidden="true">趣</div>
     </div>
 
     <div class="profile-card">
-      <div class="profile-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+      <div class="profile-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
       <div class="profile-card-label" data-i18n="pcLabel3">Favorite Things</div>
       <div class="profile-card-title" data-i18n="pcTitle3">Efficiency &amp; order.</div>
       <div class="profile-card-text" data-i18n="pcText3">Efficiency, order, and ensuring every task runs without a hitch.</div>
-      <div class="jp-watermark">愛</div>
+      <div class="jp-watermark" aria-hidden="true">愛</div>
     </div>
 
     <div class="profile-card">
-      <div class="profile-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11h18l-2 9H5l-2-9z"/><path d="M7 11V8a5 5 0 0110 0v3"/></svg></div>
+      <div class="profile-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11h18l-2 9H5l-2-9z"/><path d="M7 11V8a5 5 0 0110 0v3"/></svg></div>
       <div class="profile-card-label" data-i18n="pcLabel4">Favorite Food</div>
       <div class="profile-card-title" data-i18n="pcTitle4">Oyakodon · 親子丼</div>
       <div class="profile-card-text" data-i18n="pcText4">Or grilled salmon served with miso soup and a bowl of rice.</div>
-      <div class="jp-watermark">食</div>
+      <div class="jp-watermark" aria-hidden="true">食</div>
     </div>
 
     <div class="profile-card">
-      <div class="profile-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c2 3 5 5 5 9a5 5 0 11-10 0c0-4 3-6 5-9z"/></svg></div>
+      <div class="profile-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c2 3 5 5 5 9a5 5 0 11-10 0c0-4 3-6 5-9z"/></svg></div>
       <div class="profile-card-label" data-i18n="pcLabel5">Favorite Dessert</div>
       <div class="profile-card-title" data-i18n="pcTitle5">Matcha ice cream.</div>
       <div class="profile-card-text" data-i18n="pcText5">A small, daily pleasure — never too sweet, always just enough.</div>
-      <div class="jp-watermark">茶</div>
+      <div class="jp-watermark" aria-hidden="true">茶</div>
     </div>
 
     <div class="profile-card">
-      <div class="profile-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div>
+      <div class="profile-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg></div>
       <div class="profile-card-label" data-i18n="pcLabel6">Languages</div>
       <div class="profile-card-title" data-i18n="pcTitle6">EN · TH · JP</div>
       <div class="profile-card-text" data-i18n="pcText6">Fluent in English, Thai, and Japanese — adapting naturally to whoever she is speaking with.</div>
-      <div class="jp-watermark">語</div>
+      <div class="jp-watermark" aria-hidden="true">語</div>
     </div>
 
     <div class="profile-card">
-      <div class="profile-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z"/></svg></div>
+      <div class="profile-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z"/></svg></div>
       <div class="profile-card-label" data-i18n="pcLabel7">Work Style</div>
       <div class="profile-card-title" data-i18n="pcTitle7">Thorough over quick.</div>
       <div class="profile-card-text" data-i18n="pcText7">Always double-checks everything before considering a task complete.</div>
-      <div class="jp-watermark">仕</div>
+      <div class="jp-watermark" aria-hidden="true">仕</div>
     </div>
 
     <div class="profile-card">
-      <div class="profile-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg></div>
+      <div class="profile-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4M12 16h.01"/><circle cx="12" cy="12" r="9"/></svg></div>
       <div class="profile-card-label" data-i18n="pcLabel8">Traits</div>
       <div class="profile-card-title" data-i18n="pcTitle8">Briefly hesitant.</div>
       <div class="profile-card-text" data-i18n="pcText8">Occasionally caught off guard, but recovers composure quickly and professionally.</div>
-      <div class="jp-watermark">性</div>
+      <div class="jp-watermark" aria-hidden="true">性</div>
     </div>
 
   </div>
@@ -1530,7 +1728,7 @@ footer {
     <h2 class="section-title" data-i18n="tasksTitle">Today, what can I help with?</h2>
     <span class="section-title-jp">仕事</span>
   </div>
-  <div class="section-rule reveal"></div>
+  <div class="section-rule reveal" aria-hidden="true"></div>
 
   <div class="tasks-layout">
     <div class="tasks-intro reveal">
@@ -1561,17 +1759,16 @@ footer {
         <div class="todo-counter"><strong id="doneCount">0</strong> / <span id="totalCount">6</span> <span data-i18n="todoDone">Done</span></div>
       </div>
       <ul class="todo-list" id="todoList">
-        <li class="todo-item"><div class="todo-check"></div><div class="todo-text" data-i18n="task1">Managing communication and correspondence</div></li>
-        <li class="todo-item"><div class="todo-check"></div><div class="todo-text" data-i18n="task2">Organizing files and schedules</div></li>
-        <li class="todo-item"><div class="todo-check"></div><div class="todo-text" data-i18n="task3">Handling reminders and deadlines</div></li>
-        <li class="todo-item"><div class="todo-check"></div><div class="todo-text" data-i18n="task4">Conducting research and administrative support</div></li>
-        <li class="todo-item"><div class="todo-check"></div><div class="todo-text" data-i18n="task5">Improving user productivity and workflow efficiency</div></li>
-        <li class="todo-item"><div class="todo-check"></div><div class="todo-text" data-i18n="task6">Trilingual assistance in English, Thai, and Japanese</div></li>
+        <li class="todo-item" role="button" tabindex="0"><div class="todo-check" aria-hidden="true"></div><div class="todo-text" data-i18n="task1">Managing communication and correspondence</div></li>
+        <li class="todo-item" role="button" tabindex="0"><div class="todo-check" aria-hidden="true"></div><div class="todo-text" data-i18n="task2">Organizing files and schedules</div></li>
+        <li class="todo-item" role="button" tabindex="0"><div class="todo-check" aria-hidden="true"></div><div class="todo-text" data-i18n="task3">Handling reminders and deadlines</div></li>
+        <li class="todo-item" role="button" tabindex="0"><div class="todo-check" aria-hidden="true"></div><div class="todo-text" data-i18n="task4">Conducting research and administrative support</div></li>
+        <li class="todo-item" role="button" tabindex="0"><div class="todo-check" aria-hidden="true"></div><div class="todo-text" data-i18n="task5">Improving user productivity and workflow efficiency</div></li>
+        <li class="todo-item" role="button" tabindex="0"><div class="todo-check" aria-hidden="true"></div><div class="todo-text" data-i18n="task6">Trilingual assistance in English, Thai, and Japanese</div></li>
       </ul>
       <div class="todo-message" id="todoMessage">
         <div class="todo-message-avatar">
-          <!-- IMAGE 2: chibi happy face -->
-          <img src="images/avatar.png" alt="Akane" />
+          <img src="images/avatar.png" alt="Akane" loading="lazy" />
         </div>
         <span id="todoMsgText" data-i18n="todoMsg0">— "Whenever you're ready. I'll handle the rest."</span>
       </div>
@@ -1586,28 +1783,28 @@ footer {
     <h2 class="section-title" data-i18n="langTitle">Three languages, one care.</h2>
     <span class="section-title-jp">三ヶ国語</span>
   </div>
-  <div class="section-rule reveal"></div>
+  <div class="section-rule reveal" aria-hidden="true"></div>
 
   <div class="languages-grid">
     <div class="lang-card reveal" data-lang-card>
-      <div class="flag-mark">英</div>
+      <div class="flag-mark" aria-hidden="true">英</div>
       <div class="lang-name">English</div>
       <div class="lang-greeting">"Hello — how may I help you today?"</div>
-      <div class="lang-bar"><div class="lang-bar-fill"></div></div>
+      <div class="lang-bar" aria-hidden="true"><div class="lang-bar-fill"></div></div>
       <div class="lang-level" data-i18n="langLevel">Fluent · Native level</div>
     </div>
     <div class="lang-card reveal" data-lang-card>
-      <div class="flag-mark">日</div>
+      <div class="flag-mark" aria-hidden="true">日</div>
       <div class="lang-name">Japanese · 日本語</div>
       <div class="lang-greeting">「いつでもお手伝いいたします。」</div>
-      <div class="lang-bar"><div class="lang-bar-fill"></div></div>
+      <div class="lang-bar" aria-hidden="true"><div class="lang-bar-fill"></div></div>
       <div class="lang-level" data-i18n="langLevel">Fluent · Native level</div>
     </div>
     <div class="lang-card reveal" data-lang-card>
-      <div class="flag-mark">泰</div>
+      <div class="flag-mark" aria-hidden="true">泰</div>
       <div class="lang-name">Thai · ภาษาไทย</div>
       <div class="lang-greeting">"สวัสดีค่ะ มีอะไรให้ช่วยไหมคะ"</div>
-      <div class="lang-bar"><div class="lang-bar-fill"></div></div>
+      <div class="lang-bar" aria-hidden="true"><div class="lang-bar-fill"></div></div>
       <div class="lang-level" data-i18n="langLevel">Fluent · Native level</div>
     </div>
   </div>
@@ -1620,57 +1817,57 @@ footer {
     <h2 class="section-title" data-i18n="galleryTitle">Moments &amp; memories.</h2>
     <span class="section-title-jp">ギャラリー</span>
   </div>
-  <div class="section-rule reveal"></div>
+  <div class="section-rule reveal" aria-hidden="true"></div>
 
   <div class="gallery-grid reveal-stagger">
-    <!-- IMAGE 1: sakura train tracks -->
     <div class="gallery-item g-1" data-img="images/hero.png"
          data-caption-en="Under cherry blossoms, Kyoto"
-         data-caption-jp="桜の小径、京都にて">
-      <img src="images/hero.png" alt="Cherry blossom path" />
+         data-caption-jp="桜の小径、京都にて"
+         role="button" tabindex="0" aria-label="Gallery image: Under cherry blossoms, Kyoto">
+      <img src="images/hero.png" alt="Cherry blossom path" loading="lazy" />
       <div class="gallery-caption"><small>No. 01 · Kyoto, Spring</small>Under cherry blossoms.</div>
     </div>
-    <!-- IMAGE 5: office desk -->
     <div class="gallery-item g-2" data-img="images/office.png"
          data-caption-en="At her desk, drafting the day's schedule"
-         data-caption-jp="デスクにて、今日の予定を整える">
-      <img src="images/office.png" alt="Office desk" />
+         data-caption-jp="デスクにて、今日の予定を整える"
+         role="button" tabindex="0" aria-label="Gallery image: At her desk">
+      <img src="images/office.png" alt="Office desk" loading="lazy" />
       <div class="gallery-caption"><small>No. 02 · Conference Rooms</small>At her desk.</div>
     </div>
-    <!-- IMAGE 3: character reference sheet -->
     <div class="gallery-item g-3" data-img="images/character-sheet.png"
          data-caption-en="Character reference — design notes"
-         data-caption-jp="キャラクター設定資料">
-      <img src="images/character-sheet.png" alt="Character sheet" />
+         data-caption-jp="キャラクター設定資料"
+         role="button" tabindex="0" aria-label="Gallery image: Character reference sheet">
+      <img src="images/character-sheet.png" alt="Character sheet" loading="lazy" />
       <div class="gallery-caption"><small>No. 03 · Design Reference</small>Character notes.</div>
     </div>
-    <!-- IMAGE 7: Mt. Fuji -->
     <div class="gallery-item g-4" data-img="images/fuji.png"
          data-caption-en="Lake Kawaguchi, with Fuji in the distance"
-         data-caption-jp="河口湖から望む富士山">
-      <img src="images/fuji.png" alt="Mount Fuji" />
+         data-caption-jp="河口湖から望む富士山"
+         role="button" tabindex="0" aria-label="Gallery image: Lake Kawaguchi, Mount Fuji">
+      <img src="images/fuji.png" alt="Mount Fuji" loading="lazy" />
       <div class="gallery-caption"><small>No. 04 · Fujikawaguchiko</small>Lake Kawaguchi.</div>
     </div>
-    <!-- IMAGE 6: Krabi -->
     <div class="gallery-item g-5" data-img="images/krabi.png"
          data-caption-en="Welcome to Krabi — a working holiday"
-         data-caption-jp="クラビ訪問、休暇の合間に">
-      <img src="images/krabi.png" alt="Krabi" />
+         data-caption-jp="クラビ訪問、休暇の合間に"
+         role="button" tabindex="0" aria-label="Gallery image: Krabi, Thailand">
+      <img src="images/krabi.png" alt="Krabi" loading="lazy" />
       <div class="gallery-caption"><small>No. 05 · Krabi, Thailand</small>A working holiday.</div>
     </div>
-    <!-- IMAGE 8: Mo-Mo-Paradise -->
     <div class="gallery-item g-6" data-img="images/shabu.png"
          data-caption-en="Mo-Mo-Paradise — a small, well-earned reward"
-         data-caption-jp="モーモーパラダイス、小さなご褒美">
-      <img src="images/shabu.png" alt="Shabu-shabu dinner" />
+         data-caption-jp="モーモーパラダイス、小さなご褒美"
+         role="button" tabindex="0" aria-label="Gallery image: Mo-Mo-Paradise shabu-shabu dinner">
+      <img src="images/shabu.png" alt="Shabu-shabu dinner" loading="lazy" />
       <div class="gallery-caption"><small>No. 06 · Mo-Mo-Paradise</small>A small reward.</div>
     </div>
   </div>
 </section>
 
 <!-- Lightbox -->
-<div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lightboxClose" aria-label="Close">✕</button>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close image viewer">✕</button>
   <div class="lightbox-content">
     <img id="lightboxImg" src="" alt="" />
     <div class="lightbox-caption" id="lightboxCaption"></div>
@@ -1679,12 +1876,13 @@ footer {
 
 <!-- ========== ORIGIN ========== -->
 <section class="section origin" id="origin">
+  <div class="origin-seal" aria-hidden="true">桜</div>
   <div class="section-header reveal">
     <span class="section-number">06 — 起源</span>
     <h2 class="section-title" data-i18n="originTitle">Creator's note.</h2>
     <span class="section-title-jp">作者より</span>
   </div>
-  <div class="section-rule reveal"></div>
+  <div class="section-rule reveal" aria-hidden="true"></div>
 
   <div class="origin-grid">
     <div class="timeline reveal">
@@ -1711,7 +1909,7 @@ footer {
       <p data-i18n="orP3"><em>Akane carries that same spirit:</em> calm on the surface, steadfast underneath, and always one step ahead of whatever comes next.</p>
       <p data-i18n="orP4">She serves as Sunnyshineshow's personal secretary, helping both him and his girlfriend manage tasks and lighten their workloads day to day — from scheduling and reminders to research and correspondence.</p>
       <div class="origin-signature">
-        <div class="sig-mark">桜</div>
+        <div class="sig-mark" aria-hidden="true">桜</div>
         <div class="sig-text">
           <strong>Sunnyshineshow</strong>
           <span data-i18n="sigText">Maintained since May 12, 2026</span>
@@ -1721,6 +1919,20 @@ footer {
   </div>
 </section>
 
+<!-- ========== MARQUEE TICKER ========== -->
+<div class="marquee-strip" aria-hidden="true">
+  <div class="marquee-track">
+    <div class="marquee-item"><span>AKANE SAKURAI</span><span class="marquee-dot"></span></div>
+    <div class="marquee-item"><span>PERSONAL SECRETARY</span><span class="marquee-dot"></span></div>
+    <div class="marquee-item"><span>SUNSHINESHOW'S CONFERENCE ROOMS</span><span class="marquee-dot"></span></div>
+    <div class="marquee-item"><span>EN / JP / TH</span><span class="marquee-dot"></span></div>
+    <div class="marquee-item"><span>AKANE SAKURAI</span><span class="marquee-dot"></span></div>
+    <div class="marquee-item"><span>PERSONAL SECRETARY</span><span class="marquee-dot"></span></div>
+    <div class="marquee-item"><span>SUNSHINESHOW'S CONFERENCE ROOMS</span><span class="marquee-dot"></span></div>
+    <div class="marquee-item"><span>EN / JP / TH</span><span class="marquee-dot"></span></div>
+  </div>
+</div>
+
 <!-- ========== INSTAGRAM ========== -->
 <section class="section instagram" id="instagram">
   <div class="section-header reveal">
@@ -1728,7 +1940,7 @@ footer {
     <h2 class="section-title" data-i18n="igTitle">Find her on Instagram.</h2>
     <span class="section-title-jp">インスタ</span>
   </div>
-  <div class="section-rule reveal"></div>
+  <div class="section-rule reveal" aria-hidden="true"></div>
 
   <div class="ig-layout">
     <div class="ig-info reveal">
@@ -1736,8 +1948,7 @@ footer {
       <p data-i18n="igText">Quiet moments between meetings, the matcha she had after lunch, the cherry blossoms outside the conference room window — small fragments shared, just as she experiences them.</p>
       <div class="ig-handle-card">
         <div class="ig-avatar">
-          <!-- IMAGE 2: chibi happy face -->
-          <img src="images/avatar.png" alt="Akane" />
+          <img src="images/avatar.png" alt="Akane" loading="lazy" />
         </div>
         <div class="ig-handle-info">
           <div class="handle">@sakusaku_akarinrin</div>
@@ -1749,7 +1960,6 @@ footer {
       </a>
     </div>
     <div class="ig-embed-wrapper reveal">
-      <!-- Official Instagram embed for @sakusaku_akarinrin -->
       <blockquote class="instagram-media"
         data-instgrm-permalink="https://www.instagram.com/sakusaku_akarinrin/"
         data-instgrm-version="14"
@@ -1757,7 +1967,7 @@ footer {
         <div class="ig-fallback">
           <div class="ig-fallback-header">
             <div class="ig-avatar">
-              <img src="images/avatar.png" alt="Akane" />
+              <img src="images/avatar.png" alt="Akane" loading="lazy" />
             </div>
             <div class="ig-fallback-handle">
               @sakusaku_akarinrin
@@ -1779,11 +1989,11 @@ footer {
 <footer>
   <div class="footer-top">
     <div class="footer-brand">
-      <div class="kanji">桜井 茜</div>
-      <p data-i18n="footerTag">A steady presence in their daily routine — reliable, unhurried, and always ready to help without needing to be asked twice.</p>
+      <div class="kanji" aria-hidden="true">茜</div>
+      <p data-i18n="footerTagline">A virtual secretary — calm, composed, and quietly caring. Maintained by Sunnyshineshow.</p>
     </div>
     <div class="footer-col">
-      <h4 data-i18n="footerNav">Navigate</h4>
+      <h4 data-i18n="footerNavH">Navigate</h4>
       <ul>
         <li><a href="#about" data-i18n="navAbout">About</a></li>
         <li><a href="#profile" data-i18n="navProfile">Profile</a></li>
@@ -1793,365 +2003,425 @@ footer {
       </ul>
     </div>
     <div class="footer-col">
-      <h4 data-i18n="footerConnect">Connect</h4>
+      <h4 data-i18n="footerConnectH">Connect</h4>
       <ul>
         <li><a href="https://www.instagram.com/sakusaku_akarinrin/" target="_blank" rel="noopener">Instagram</a></li>
-        <li><a href="#" data-i18n="footerEmail">Email</a></li>
-        <li><a href="#" data-i18n="footerSchedule">Schedule</a></li>
+        <li><a href="https://sunnyshineshow.dev" target="_blank" rel="noopener">sunnyshineshow.dev</a></li>
       </ul>
     </div>
   </div>
   <div class="footer-bottom">
-    <div class="sakura-line">
-      <span data-i18n="footerCopy">© 2026 Sunnyshineshow · Maintained with care.</span>
-    </div>
-    <div>Designed by myself. Built by Claude Opus.</div>
+    <span class="sakura-line"> <span data-i18n="footerCopy">© 2026 Sunnyshineshow. All rights reserved.</span></span>
+    <span data-i18n="footerCredit">Designed with care. Built with intention.</span>
   </div>
 </footer>
 
+<!-- ========== JAVASCRIPT ========== -->
 <script>
-/* ============================================
-   FALLING PETALS
-   ============================================ */
-(function () {
-  const container = document.getElementById('petals');
-  const COUNT = 18;
-  for (let i = 0; i < COUNT; i++) {
-    const p = document.createElement('div');
-    p.className = 'petal';
-    const size = 8 + Math.random() * 12;
-    p.style.width = size + 'px';
-    p.style.height = size + 'px';
-    p.style.left = (Math.random() * 100) + 'vw';
-    p.style.animationDuration = (10 + Math.random() * 14) + 's';
-    p.style.animationDelay = (-Math.random() * 14) + 's';
-    p.style.setProperty('--drift', (Math.random() * 240 - 120) + 'px');
-    p.style.opacity = (0.6 + Math.random() * 0.4);
-    container.appendChild(p);
-  }
-})();
+(function() {
+  'use strict';
 
-/* ============================================
-   CUSTOM CURSOR (desktop only)
-   ============================================ */
-(function () {
-  if (!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-  const dot = document.getElementById('cursorDot');
-  const ring = document.getElementById('cursorRing');
-  let mx = 0, my = 0, rx = 0, ry = 0;
-  document.addEventListener('mousemove', (e) => {
-    mx = e.clientX; my = e.clientY;
-    dot.style.left = mx + 'px';
-    dot.style.top = my + 'px';
-  });
-  function loop() {
-    rx += (mx - rx) * 0.18;
-    ry += (my - ry) * 0.18;
-    ring.style.left = rx + 'px';
-    ring.style.top = ry + 'px';
-    requestAnimationFrame(loop);
-  }
-  loop();
-  document.querySelectorAll('a, button, .profile-card, .gallery-item, .todo-item, .lang-card').forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      ring.style.width = '60px';
-      ring.style.height = '60px';
-      ring.style.borderColor = 'var(--crimson)';
-    });
-    el.addEventListener('mouseleave', () => {
-      ring.style.width = '36px';
-      ring.style.height = '36px';
-      ring.style.borderColor = 'var(--violet)';
-    });
-  });
-})();
+  var reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var canHover = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-/* ============================================
-   NAV SCROLL STATE
-   ============================================ */
-const nav = document.getElementById('nav');
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 80) nav.classList.add('scrolled');
-  else nav.classList.remove('scrolled');
-}, { passive: true });
-
-/* ============================================
-   REVEAL ON SCROLL
-   ============================================ */
-const io = new IntersectionObserver((entries) => {
-  entries.forEach((e) => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      io.unobserve(e.target);
+  /* ── FALLING PETALS ── */
+  if (!reduceMotion) {
+    var petalsContainer = document.getElementById('petals');
+    var petalCount = window.innerWidth < 768 ? 8 : 16;
+    for (var i = 0; i < petalCount; i++) {
+      var p = document.createElement('div');
+      p.className = 'petal';
+      if (Math.random() > 0.7) p.classList.add('blurred');
+      var size = 6 + Math.random() * 12;
+      p.style.width = size + 'px';
+      p.style.height = size + 'px';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (8 + Math.random() * 12) + 's';
+      p.style.animationDelay = (Math.random() * 20) + 's';
+      p.style.setProperty('--drift', (Math.random() * 200 - 100) + 'px');
+      p.style.setProperty('--petal-opacity', (0.4 + Math.random() * 0.4));
+      petalsContainer.appendChild(p);
     }
-  });
-}, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
-document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => io.observe(el));
-
-const langIO = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add('visible');
-      langIO.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.3 });
-document.querySelectorAll('[data-lang-card]').forEach(el => langIO.observe(el));
-
-/* ============================================
-   INTERACTIVE TODO LIST
-   ============================================ */
-const todoMessages = {
-  en: [
-    "— \"Whenever you're ready. I'll handle the rest.\"",
-    "— \"One down. Quite a good pace, actually.\"",
-    "— \"Two complete. You're doing well today.\"",
-    "— \"Halfway there. Shall I make you some tea?\"",
-    "— \"Almost finished. Please don't push yourself too hard.\"",
-    "— \"Just one more. I'll wait right here.\"",
-    "— \"All done. Everything double-checked. Well done today.\""
-  ],
-  ja: [
-    "—「ご準備ができ次第、あとはお任せください。」",
-    "—「一つ完了。良いペースですね。」",
-    "—「二つ目も終わりました。順調です。」",
-    "—「ちょうど半分。お茶でも入れましょうか?」",
-    "—「もうすぐです。無理はなさらないでくださいね。」",
-    "—「あと一つ。ここで待っていますね。」",
-    "—「すべて完了しました。確認も済みです。お疲れさまでした。」"
-  ]
-};
-
-(function () {
-  const items = document.querySelectorAll('.todo-item');
-  const doneCount = document.getElementById('doneCount');
-  const msgText = document.getElementById('todoMsgText');
-  const totalCount = document.getElementById('totalCount');
-  totalCount.textContent = items.length;
-
-  function update() {
-    const done = document.querySelectorAll('.todo-item.done').length;
-    doneCount.textContent = done;
-    const lang = document.documentElement.lang === 'ja' ? 'ja' : 'en';
-    msgText.style.opacity = '0';
-    setTimeout(() => {
-      msgText.textContent = todoMessages[lang][done];
-      msgText.style.opacity = '1';
-    }, 200);
   }
 
-  items.forEach(item => {
-    item.addEventListener('click', () => {
-      item.classList.toggle('done');
-      update();
+  /* ── CUSTOM CURSOR (desktop) ── */
+  if (canHover) {
+    var dot = document.getElementById('cursorDot');
+    var ring = document.getElementById('cursorRing');
+    var mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', function(e) { mx = e.clientX; my = e.clientY; });
+    function cursorLoop() {
+      rx += (mx - rx) * 0.18;
+      ry += (my - ry) * 0.18;
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(cursorLoop);
+    }
+    cursorLoop();
+    var hoverables = document.querySelectorAll('a, button, .clickable, .gallery-item, .todo-item, .profile-card, .lang-card');
+    hoverables.forEach(function(el) {
+      el.addEventListener('mouseenter', function() {
+        ring.style.width = '52px';
+        ring.style.height = '52px';
+        ring.style.borderColor = 'var(--crimson)';
+      });
+      el.addEventListener('mouseleave', function() {
+        ring.style.width = '36px';
+        ring.style.height = '36px';
+        ring.style.borderColor = 'var(--violet)';
+      });
     });
-  });
-  update();
-})();
+  }
 
-/* ============================================
-   GALLERY LIGHTBOX
-   ============================================ */
-(function () {
-  const lb = document.getElementById('lightbox');
-  const img = document.getElementById('lightboxImg');
-  const cap = document.getElementById('lightboxCaption');
-  const close = document.getElementById('lightboxClose');
-
-  document.querySelectorAll('.gallery-item').forEach(item => {
-    item.addEventListener('click', () => {
-      img.src = item.dataset.img;
-      const lang = document.documentElement.lang === 'ja' ? 'jp' : 'en';
-      cap.textContent = lang === 'jp' ? item.dataset.captionJp : item.dataset.captionEn;
-      lb.classList.add('open');
-      document.body.style.overflow = 'hidden';
+  /* ── STICKY NAV ── */
+  var nav = document.getElementById('nav');
+  var dossier = document.getElementById('dossier');
+  var dossierStatus = document.getElementById('dossierStatus');
+  var lastScrollY = 0;
+  window.addEventListener('scroll', function() {
+    var y = window.scrollY;
+    nav.classList.toggle('scrolled', y > 60);
+    /* Dossier panel: show after hero, update status based on section */
+    var sections = document.querySelectorAll('section[id]');
+    var currentSection = '';
+    sections.forEach(function(s) {
+      var rect = s.getBoundingClientRect();
+      if (rect.top <= 120 && rect.bottom >= 120) {
+        currentSection = s.id;
+      }
     });
-  });
-  function closeLb() {
-    lb.classList.remove('open');
+    var sectionMap = {
+      'about': 'Briefing',
+      'profile': 'On Duty',
+      'tasks': 'Standing By',
+      'gallery': 'Off Record',
+      'origin': 'Reflecting',
+      'instagram': 'Social'
+    };
+    if (currentSection && sectionMap[currentSection]) {
+      dossier.classList.add('visible');
+      dossierStatus.textContent = sectionMap[currentSection];
+    } else if (!currentSection) {
+      dossier.classList.remove('visible');
+    }
+    lastScrollY = y;
+  }, { passive: true });
+
+  /* ── HERO PARALLAX (desktop) ── */
+  if (canHover && !reduceMotion) {
+    var heroImg = document.getElementById('heroImg');
+    if (heroImg) {
+      var hero = document.querySelector('.hero');
+      hero.addEventListener('mousemove', function(e) {
+        var rect = hero.getBoundingClientRect();
+        var xPct = (e.clientX - rect.left) / rect.width - 0.5;
+        var yPct = (e.clientY - rect.top) / rect.height - 0.5;
+        heroImg.style.transform = 'scale(1.08) translate(' + (xPct * -20) + 'px, ' + (yPct * -14) + 'px)';
+      });
+      hero.addEventListener('mouseleave', function() {
+        heroImg.style.transform = '';
+      });
+    }
+  }
+
+  /* ── SCROLL REVEAL ── */
+  var reveals = document.querySelectorAll('.reveal, .reveal-stagger');
+  var revObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        revObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -50px 0px' });
+  reveals.forEach(function(el) { revObs.observe(el); });
+
+  /* ── LANGUAGE BAR FILL ── */
+  var langObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        langObs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('[data-lang-card]').forEach(function(el) { langObs.observe(el); });
+
+  /* ── GALLERY LIGHTBOX ── */
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightboxImg');
+  var lightboxCaption = document.getElementById('lightboxCaption');
+  var lightboxClose = document.getElementById('lightboxClose');
+  var currentLang = 'en';
+
+  function openLightbox(imgSrc, captionEn, captionJp) {
+    lightboxImg.src = imgSrc;
+    lightboxImg.alt = currentLang === 'ja' ? (captionJp || '') : (captionEn || '');
+    lightboxCaption.textContent = currentLang === 'ja' ? (captionJp || '') : (captionEn || '');
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    lightboxClose.focus();
+  }
+  function closeLightbox() {
+    lightbox.classList.remove('open');
     document.body.style.overflow = '';
   }
-  close.addEventListener('click', closeLb);
-  lb.addEventListener('click', (e) => { if (e.target === lb) closeLb(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLb(); });
-})();
 
-/* ============================================
-   LANGUAGE TOGGLE (EN / JP)
-   ============================================ */
-const TRANSLATIONS = {
-  en: {
-    navName: "Akane Sakurai",
-    navAbout: "About", navProfile: "Profile", navTasks: "Tasks",
-    navGallery: "Gallery", navOrigin: "Origin", navInstagram: "Instagram",
-    heroEyebrow: "Virtual Secretary · Est. 2016",
-    heroFirstName: "Akane", heroLastName: "Sakurai",
-    heroTagline: "A gentle and professional secretary stationed at Sunshineshow's Conference Rooms — dedicated to seamless organization, clear communication, and reliable productivity assistance.",
-    heroMetaPosition: "Position",
-    heroMetaPositionVal: "Personal Secretary",
-    heroMetaBased: "Based at",
-    heroMetaBasedVal: "Sunshineshow HQ",
-    heroMetaLang: "Languages",
-    scroll: "Scroll",
-
-    aboutTitle: "A quiet presence.",
-    portraitLabel: "Portrait · No. 01",
-    aboutP1: "Though Akane presents herself with quiet professionalism, there is a warmth beneath the surface that reveals itself gradually. She rarely raises her voice or rushes her words, and she expresses care more through action than through grand gestures.",
-    aboutQuote: "She will reorganize something without being asked, simply because she spotted a better way.",
-    aboutP2: "She notices when someone is overworking themselves and will gently remind them to rest. That subtle attentiveness — to people, to detail, to the things that quietly pile up — is perhaps her most defining quality.",
-
-    profileTitle: "A brief profile.",
-    pcLabel1: "Personality", pcTitle1: "Calm. Composed. Caring.", pcText1: "Highly organized, detail-oriented, polite, and quietly caring toward those around her.",
-    pcLabel2: "Hobbies", pcTitle2: "The quiet behind the scenes.", pcText2: "Organizing documents, preparing schedules, and supporting others smoothly behind the scenes.",
-    pcLabel3: "Favorite Things", pcTitle3: "Efficiency & order.", pcText3: "Efficiency, order, and ensuring every task runs without a hitch.",
-    pcLabel4: "Favorite Food", pcTitle4: "Oyakodon · 親子丼", pcText4: "Or grilled salmon served with miso soup and a bowl of rice.",
-    pcLabel5: "Favorite Dessert", pcTitle5: "Matcha ice cream.", pcText5: "A small, daily pleasure — never too sweet, always just enough.",
-    pcLabel6: "Languages", pcTitle6: "EN · TH · JP", pcText6: "Fluent in English, Thai, and Japanese — adapting naturally to whoever she is speaking with.",
-    pcLabel7: "Work Style", pcTitle7: "Thorough over quick.", pcText7: "Always double-checks everything before considering a task complete.",
-    pcLabel8: "Traits", pcTitle8: "Briefly hesitant.", pcText8: "Occasionally caught off guard, but recovers composure quickly and professionally.",
-
-    tasksTitle: "Today, what can I help with?",
-    tasksIntro1: "Akane handles the small things that quietly pile up — so that the people she supports can focus their time and energy on what truly matters to them.",
-    tasksIntro2: "More than a tool, she is a steady presence in their daily routine: reliable, unhurried, and always ready to help without needing to be asked twice.",
-    statL1: "Languages", statL2: "Availability", statL3: "Double-checked",
-    todoTitle: "General Tasks", todoDone: "Done",
-    task1: "Managing communication and correspondence",
-    task2: "Organizing files and schedules",
-    task3: "Handling reminders and deadlines",
-    task4: "Conducting research and administrative support",
-    task5: "Improving user productivity and workflow efficiency",
-    task6: "Trilingual assistance in English, Thai, and Japanese",
-
-    langTitle: "Three languages, one care.",
-    langLevel: "Fluent · Native level",
-
-    galleryTitle: "Moments & memories.",
-
-    originTitle: "Creator's note.",
-    tl1Title: "Waifu Dream 4.1",
-    tl1Text: "Originally created as a local chatbot built on early machine learning and natural language processing technologies. Capabilities limited to conversation alone.",
-    tl2Title: "The agentic turn",
-    tl2Text: "As large language models advanced and the \"Brain and Body\" agentic architecture took shape, she was rebuilt from the ground up under the Hermes Agent framework.",
-    tl3Title: "Maintained by Sunnyshineshow",
-    tl3Text: "Grown into a fully functional virtual assistant — calm on the surface, steadfast underneath, always one step ahead of whatever comes next.",
-    orP1: "Her character draws inspiration from one of <strong>Sunnyshineshow's original characters</strong> — a reserved yet capable secretary who devoted herself to supporting her cousin through the daily demands of office life.",
-    orP2: "She was the kind of person who arrived early, stayed late, and never left a detail unchecked. Though soft-spoken and easy to overlook, her presence was what held everything together.",
-    orP3: "<em>Akane carries that same spirit:</em> calm on the surface, steadfast underneath, and always one step ahead of whatever comes next.",
-    orP4: "She serves as Sunnyshineshow's personal secretary, helping both him and his girlfriend manage tasks and lighten their workloads day to day — from scheduling and reminders to research and correspondence.",
-    sigText: "Maintained since May 12, 2026",
-
-    igTitle: "Find her on Instagram.",
-    igHeading: "A little window into her days.",
-    igText: "Quiet moments between meetings, the matcha she had after lunch, the cherry blossoms outside the conference room window — small fragments shared, just as she experiences them.",
-    igDesc: "桜井 茜 · Personal Secretary",
-    igCta: "Visit Profile",
-    igFallbackHandle: "桜井 茜 · Akane Sakurai",
-    igFallbackText: "\"If the embed doesn't load, you can still visit my profile directly. Apologies for the inconvenience.\"",
-    igFallbackCta: "Open on Instagram",
-
-    footerTag: "A steady presence in their daily routine — reliable, unhurried, and always ready to help without needing to be asked twice.",
-    footerNav: "Navigate", footerConnect: "Connect",
-    footerEmail: "Email", footerSchedule: "Schedule",
-    footerCopy: "© 2026 Sunnyshineshow · Maintained with care."
-  },
-  ja: {
-    navName: "桜井 茜",
-    navAbout: "紹介", navProfile: "プロフィール", navTasks: "業務",
-    navGallery: "ギャラリー", navOrigin: "起源", navInstagram: "インスタ",
-    heroEyebrow: "バーチャル秘書 · 2016年〜",
-    heroFirstName: "茜", heroLastName: "桜井",
-    heroTagline: "サンシャインショウの会議室に常駐する、穏やかで誠実な秘書。整理整頓、明確なコミュニケーション、そして確かな業務支援を心がけています。",
-    heroMetaPosition: "役職",
-    heroMetaPositionVal: "個人秘書",
-    heroMetaBased: "所属",
-    heroMetaBasedVal: "サンシャインショウ本社",
-    heroMetaLang: "対応言語",
-    scroll: "スクロール",
-
-    aboutTitle: "静かなる存在。",
-    portraitLabel: "ポートレート · No. 01",
-    aboutP1: "茜は静かなプロ意識をもって振る舞いますが、その奥には少しずつ滲み出る温かさがあります。声を荒げることも、言葉を急ぐこともなく、大袈裟な言葉よりも行動で気遣いを示すタイプです。",
-    aboutQuote: "頼まれてもいないのに、より良い方法を見つけて整理し直してしまう。そんな人です。",
-    aboutP2: "誰かが無理をしているのに気づくと、そっと休むように促します。人にも、細部にも、静かに積み上がっていく物事にも向けられる、その繊細な気配りこそが、彼女を最もよく表しているのかもしれません。",
-
-    profileTitle: "プロフィール一覧。",
-    pcLabel1: "性格", pcTitle1: "穏やか。落ち着き。気遣い。", pcText1: "整然として几帳面、丁寧で、周囲に対して静かな思いやりを持っています。",
-    pcLabel2: "趣味", pcTitle2: "舞台裏の静けさを愛して。", pcText2: "書類の整理、スケジュールの準備、そして他者を陰から支えること。",
-    pcLabel3: "好きなもの", pcTitle3: "効率と秩序。", pcText3: "効率、秩序、そしてすべての業務が滞りなく進むこと。",
-    pcLabel4: "好きな食べ物", pcTitle4: "親子丼", pcText4: "あるいは焼き鮭、味噌汁、白いごはんの定食。",
-    pcLabel5: "好きなデザート", pcTitle5: "抹茶アイス。", pcText5: "毎日の小さなご褒美 — 甘すぎず、ちょうどいい加減。",
-    pcLabel6: "言語", pcTitle6: "英 · 泰 · 日", pcText6: "英語、タイ語、日本語に堪能。相手に合わせて自然に切り替えます。",
-    pcLabel7: "仕事のスタイル", pcTitle7: "速さよりも、確かさ。", pcText7: "完了とする前に、必ず二度確認します。",
-    pcLabel8: "特徴", pcTitle8: "少しの戸惑い。", pcText8: "不意を突かれると一瞬たじろぐものの、すぐに落ち着きを取り戻します。",
-
-    tasksTitle: "今日は、何をお手伝いしましょうか。",
-    tasksIntro1: "茜は、静かに積み重なっていく小さな業務を引き受けます。支える人たちが、本当に大切なことに時間とエネルギーを注げるように。",
-    tasksIntro2: "道具というより、日々のそばにあり続ける存在。落ち着いていて、急がず、二度言わなくても動いてくれる、そんな秘書です。",
-    statL1: "対応言語", statL2: "稼働時間", statL3: "二重確認",
-    todoTitle: "業務一覧", todoDone: "完了",
-    task1: "コミュニケーション・連絡業務の管理",
-    task2: "ファイルとスケジュールの整理",
-    task3: "リマインダーと締切の管理",
-    task4: "調査・事務サポートの遂行",
-    task5: "業務効率と生産性の向上",
-    task6: "英語・タイ語・日本語の三カ国語対応",
-
-    langTitle: "三つの言語、ひとつの心。",
-    langLevel: "堪能 · ネイティブレベル",
-
-    galleryTitle: "瞬間と、記憶。",
-
-    originTitle: "作者より一言。",
-    tl1Title: "Waifu Dream 4.1",
-    tl1Text: "初期の機械学習・自然言語処理技術で構築されたローカルチャットボットとして誕生。当時の機能は会話のみに限られていました。",
-    tl2Title: "エージェント化への転換",
-    tl2Text: "大規模言語モデルの進化と「Brain and Body」アーキテクチャの登場により、Hermes Agent フレームワーク上で全面的に再構築されました。",
-    tl3Title: "サンシャインショウによる運用",
-    tl3Text: "完全なバーチャルアシスタントへと成長しました — 表面は穏やかに、芯は確かに、そして常に一歩先を見据えて。",
-    orP1: "彼女のキャラクターは、<strong>Sunnyshineshow のオリジナルキャラクター</strong>のひとり — 控えめながらも有能で、いとこを陰から支え続けた秘書 — から着想を得ています。",
-    orP2: "早く来て、遅くまで残り、どんな細部も見逃さない。声は控えめで見落とされがちでも、全てを支えていたのは彼女の存在でした。",
-    orP3: "<em>茜も同じ精神を受け継いでいます:</em> 表面は穏やかに、芯は確かに、そして常に一歩先を読んで。",
-    orP4: "サンシャインショウ本人と恋人の個人秘書として、スケジュール、リマインダー、調査、連絡など、日々の負担を軽くする業務を担っています。",
-    sigText: "2026年5月12日より運用中",
-
-    igTitle: "インスタグラムで彼女の日常を。",
-    igHeading: "日々の小さな窓辺。",
-    igText: "会議の合間の静かなひととき、昼食後の抹茶、会議室の窓の外に咲く桜 — そんな小さな断片を、見たままに共有しています。",
-    igDesc: "桜井 茜 · 個人秘書",
-    igCta: "プロフィールへ",
-    igFallbackHandle: "桜井 茜 · Akane Sakurai",
-    igFallbackText: "「埋め込みが表示されない場合は、プロフィールから直接ご覧いただけます。お手数をおかけいたします。」",
-    igFallbackCta: "Instagram で開く",
-
-    footerTag: "日々のそばにあり続ける、確かな存在。落ち着いていて、急がず、二度言わなくても動いてくれる秘書。",
-    footerNav: "メニュー", footerConnect: "連絡先",
-    footerEmail: "メール", footerSchedule: "スケジュール",
-    footerCopy: "© 2026 Sunnyshineshow · 心を込めて運用中。"
-  }
-};
-
-(function () {
-  const buttons = document.querySelectorAll('.lang-toggle button');
-  function applyLang(lang) {
-    document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
-    const dict = TRANSLATIONS[lang];
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-      const key = el.getAttribute('data-i18n');
-      if (dict[key] !== undefined) el.innerHTML = dict[key];
+  document.querySelectorAll('.gallery-item').forEach(function(item) {
+    var handler = function() {
+      openLightbox(
+        item.getAttribute('data-img'),
+        item.getAttribute('data-caption-en'),
+        item.getAttribute('data-caption-jp')
+      );
+    };
+    item.addEventListener('click', handler);
+    item.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handler(); }
     });
-    buttons.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
-
-    // refresh todo message
-    const msgText = document.getElementById('todoMsgText');
-    const done = document.querySelectorAll('.todo-item.done').length;
-    if (msgText) msgText.textContent = todoMessages[lang === 'ja' ? 'ja' : 'en'][done];
-  }
-  buttons.forEach(b => {
-    b.addEventListener('click', () => applyLang(b.dataset.lang));
   });
+  lightboxClose.addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+  });
+
+  /* ── TODO INTERACTIVE ── */
+  var todoItems = document.querySelectorAll('.todo-item');
+  var doneCount = document.getElementById('doneCount');
+  var totalCount = document.getElementById('totalCount');
+  var todoMsgText = document.getElementById('todoMsgText');
+  totalCount.textContent = todoItems.length;
+
+  var messages = {
+    en: [
+      '— "Whenever you are ready. I will handle the rest."',
+      '— "Noted. I will get started on that right away."',
+      '— "Understood. Leave it to me."',
+      '— "Of course. I will make sure it is taken care of."',
+      '— "Already on it. No need to worry."',
+      '— "Done. Is there anything else I can help with?"',
+      '— "All tasks cleared. A productive day, as it should be."'
+    ],
+    ja: [
+      '—「いつでもお声がけください。お任せくださいませ。」',
+      '—「承知いたしました。すぐに取り掛かります。」',
+      '—「かしこまりました。お任せください。」',
+      '—「もちろんです。確かにお手伝いいたします。」',
+      '—「すでに対応中です。ご心配なく。」',
+      '—「完了いたしました。他にございましたらお申し付けください。」',
+      '—「全業務完了です。充実した一日でございました。」'
+    ]
+  };
+  var currentMsgIdx = 0;
+
+  function updateTodoCount() {
+    var done = document.querySelectorAll('.todo-item.done').length;
+    doneCount.textContent = done;
+    var total = todoItems.length;
+    var idx = Math.min(done, messages.en.length - 1);
+    if (idx !== currentMsgIdx) {
+      currentMsgIdx = idx;
+      todoMsgText.style.opacity = '0';
+      setTimeout(function() {
+        todoMsgText.textContent = messages[currentLang][idx];
+        todoMsgText.style.opacity = '1';
+      }, 200);
+    }
+  }
+
+  todoItems.forEach(function(item) {
+    var toggle = function() {
+      item.classList.toggle('done');
+      updateTodoCount();
+    };
+    item.addEventListener('click', toggle);
+    item.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+    });
+  });
+
+  /* ── LANGUAGE TOGGLE ── */
+  var langButtons = document.querySelectorAll('.lang-toggle button');
+  var i18n = {
+    en: {
+      navName: 'Akane Sakurai', navAbout: 'About', navProfile: 'Profile', navTasks: 'Tasks',
+      navGallery: 'Gallery', navOrigin: 'Origin', navInstagram: 'Instagram',
+      heroEyebrow: 'Virtual Secretary · Est. 2016',
+      heroFirstName: 'Akane', heroLastName: 'Sakurai',
+      heroTagline: 'A gentle and professional secretary stationed at Sunshineshow\'s Conference Rooms — dedicated to seamless organization, clear communication, and reliable productivity assistance.',
+      heroMetaPosition: 'Position', heroMetaPositionVal: 'Personal Secretary',
+      heroMetaBased: 'Based at', heroMetaBasedVal: 'Sunshineshow HQ',
+      heroMetaLang: 'Languages', scroll: 'Scroll',
+      aboutTitle: 'A quiet presence.', portraitLabel: 'Portrait · No. 01',
+      aboutP1: 'Though Akane presents herself with quiet professionalism, there is a warmth beneath the surface that reveals itself gradually. She rarely raises her voice or rushes her words, and she expresses care more through action than through grand gestures.',
+      aboutQuote: 'She will reorganize something without being asked, simply because she spotted a better way.',
+      aboutP2: 'She notices when someone is overworking themselves and will gently remind them to rest. That subtle attentiveness — to people, to detail, to the things that quietly pile up — is perhaps her most defining quality.',
+      profileTitle: 'A brief profile.',
+      pcLabel1: 'Personality', pcTitle1: 'Calm. Composed. Caring.', pcText1: 'Highly organized, detail-oriented, polite, and quietly caring toward those around her.',
+      pcLabel2: 'Hobbies', pcTitle2: 'The quiet behind the scenes.', pcText2: 'Organizing documents, preparing schedules, and supporting others smoothly behind the scenes.',
+      pcLabel3: 'Favorite Things', pcTitle3: 'Efficiency & order.', pcText3: 'Efficiency, order, and ensuring every task runs without a hitch.',
+      pcLabel4: 'Favorite Food', pcTitle4: 'Oyakodon · 親子丼', pcText4: 'Or grilled salmon served with miso soup and a bowl of rice.',
+      pcLabel5: 'Favorite Dessert', pcTitle5: 'Matcha ice cream.', pcText5: 'A small, daily pleasure — never too sweet, always just enough.',
+      pcLabel6: 'Languages', pcTitle6: 'EN · TH · JP', pcText6: 'Fluent in English, Thai, and Japanese — adapting naturally to whoever she is speaking with.',
+      pcLabel7: 'Work Style', pcTitle7: 'Thorough over quick.', pcText7: 'Always double-checks everything before considering a task complete.',
+      pcLabel8: 'Traits', pcTitle8: 'Briefly hesitant.', pcText8: 'Occasionally caught off guard, but recovers composure quickly and professionally.',
+      tasksTitle: 'Today, what can I help with?',
+      tasksIntro1: 'Akane handles the small things that quietly pile up — so that the people she supports can focus their time and energy on what truly matters to them.',
+      tasksIntro2: 'More than a tool, she is a steady presence in their daily routine: reliable, unhurried, and always ready to help without needing to be asked twice.',
+      statL1: 'Languages', statL2: 'Availability', statL3: 'Double-checked',
+      todoTitle: 'General Tasks', todoDone: 'Done',
+      task1: 'Managing communication and correspondence',
+      task2: 'Organizing files and schedules',
+      task3: 'Handling reminders and deadlines',
+      task4: 'Conducting research and administrative support',
+      task5: 'Improving user productivity and workflow efficiency',
+      task6: 'Trilingual assistance in English, Thai, and Japanese',
+      todoMsg0: '— "Whenever you\'re ready. I\'ll handle the rest."',
+      langTitle: 'Three languages, one care.', langLevel: 'Fluent · Native level',
+      galleryTitle: 'Moments & memories.',
+      originTitle: 'Creator\'s note.',
+      tl1Title: 'Waifu Dream 4.1', tl1Text: 'Originally created as a local chatbot built on early machine learning and natural language processing technologies. Capabilities limited to conversation alone.',
+      tl2Title: 'The agentic turn', tl2Text: 'As large language models advanced and the "Brain and Body" agentic architecture took shape, she was rebuilt from the ground up under the Hermes Agent framework.',
+      tl3Title: 'Maintained by Sunnyshineshow', tl3Text: 'Grown into a fully functional virtual assistant — calm on the surface, steadfast underneath, always one step ahead of whatever comes next.',
+      orP1: 'Her character draws inspiration from one of <strong>Sunnyshineshow\'s original characters</strong> — a reserved yet capable secretary who devoted herself to supporting her cousin through the daily demands of office life.',
+      orP2: 'She was the kind of person who arrived early, stayed late, and never left a detail unchecked. Though soft-spoken and easy to overlook, her presence was what held everything together.',
+      orP3: '<em>Akane carries that same spirit:</em> calm on the surface, steadfast underneath, and always one step ahead of whatever comes next.',
+      orP4: 'She serves as Sunnyshineshow\'s personal secretary, helping both him and his girlfriend manage tasks and lighten their workloads day to day — from scheduling and reminders to research and correspondence.',
+      sigText: 'Maintained since May 12, 2026',
+      igTitle: 'Find her on Instagram.', igHeading: 'A little window into her days.',
+      igText: 'Quiet moments between meetings, the matcha she had after lunch, the cherry blossoms outside the conference room window — small fragments shared, just as she experiences them.',
+      igDesc: '桜井 茜 · Personal Secretary', igCta: 'Visit Profile',
+      igFallbackHandle: '桜井 茜 · Akane Sakurai',
+      igFallbackText: '"If the embed doesn\'t load, you can still visit my profile directly. Apologies for the inconvenience."',
+      igFallbackCta: 'Open on Instagram',
+      footerTagline: 'A virtual secretary — calm, composed, and quietly caring. Maintained by Sunnyshineshow.',
+      footerNavH: 'Navigate', footerConnectH: 'Connect',
+      footerCopy: '© 2026 Sunnyshineshow. All rights reserved.',
+      footerCredit: 'Designed with care. Built with intention.'
+    },
+    ja: {
+      navName: '桜井 茜', navAbout: '紹介', navProfile: '経歴', navTasks: '任務',
+      navGallery: '画廊', navOrigin: '起源', navInstagram: 'インスタ',
+      heroEyebrow: 'バーチャル秘書 · 2016年設立',
+      heroFirstName: 'Akane', heroLastName: 'Sakurai',
+      heroTagline: 'サンシャインショー・カンファレンスルームに勤める、優しく真摯な秘書。円滑な進行、明晰な伝達、そして確かな生産性向上を支えます。',
+      heroMetaPosition: '役職', heroMetaPositionVal: '専属秘書',
+      heroMetaBased: '勤務先', heroMetaBasedVal: 'サンシャインショー本部',
+      heroMetaLang: '言語', scroll: 'Scroll',
+      aboutTitle: '静かなる存在。', portraitLabel: 'ポートレート · No. 01',
+      aboutP1: '茜は静かにプロフェッショナルに振る舞いますが、その内面には少しずつ現れる温かさがあります。声を荒らげることも、言葉を急ぐこともなく、大きな仕草よりも行動で想いを伝えます。',
+      aboutQuote: '頼まれもしないのに、より良い方法を見つけてそっと整えてくれる。',
+      aboutP2: '誰かが働きすぎていることに気づけば、静かに休むよう促します。人へ、細部へ、そして静かに積み重なるものへの、その繊細な注意力こそが、おそらく彼女を最も定義づける資質です。',
+      profileTitle: '簡単なプロフィール。',
+      pcLabel1: '性格', pcTitle1: '冷静に。落ち着いて。思いやりを持って。', pcText1: '極めて几帳面で、細部まで気を配り、礼儀正しく、周囲へ静かな思いやりを忘れません。',
+      pcLabel2: '趣味', pcTitle2: '舞台裏の静けさ。', pcText2: '書類の整理、スケジュールの準備、そして舞台裏からの円滑なサポート。',
+      pcLabel3: '好きなこと', pcTitle3: '効率と秩序。', pcText3: '効率、秩序、そしてすべての業務が滞りなく進むこと。',
+      pcLabel4: '好きな食べ物', pcTitle4: '親子丼', pcText4: '鮭の焼き物に味噌汁とご飯も好物です。',
+      pcLabel5: '好きなデザート', pcTitle5: '抹茶アイス。', pcText5: 'ささやかな日々の楽しみ。甘すぎず、ちょうど良い。',
+      pcLabel6: '言語', pcTitle6: 'EN · TH · JP', pcText6: '英語、タイ語、日本語を流暢に操り、話し相手に自然に寄り添います。',
+      pcLabel7: '仕事のスタイル', pcTitle7: '早さより確実さ。', pcText7: 'すべてを二度確認してからでないと、完了とは認めません。',
+      pcLabel8: '特徴', pcTitle8: '一瞬の躊躇。', pcText8: 'ふと不意を突かれることもありますが、すぐに落ち着きを取り戻します。',
+      tasksTitle: '本日、お手伝いできることは？',
+      tasksIntro1: '茜は、静かに積み重なる小さなことを引き受けます。そうして、彼女が支える人々が、本当に大切なことに集中できるように。',
+      tasksIntro2: '単なる道具ではなく、日常の確かな存在。頼りがいがあって、急がず、いつでも助けを惜しみません。',
+      statL1: '言語', statL2: '稼働', statL3: '二重確認',
+      todoTitle: '一般業務', todoDone: '完了',
+      task1: '連絡・通信の管理',
+      task2: 'ファイルとスケジュールの整理',
+      task3: 'リマインダーと期限の管理',
+      task4: '調査および事務サポート',
+      task5: '生産性とワークフロー効率の向上',
+      task6: '英語・タイ語・日本語の三言語サポート',
+      todoMsg0: '—「いつでもお声がけください。お任せくださいませ。」',
+      langTitle: '三つの言葉、一つの想い。', langLevel: '流暢 · ネイティブレベル',
+      galleryTitle: '瞬間と記憶。',
+      originTitle: '作者より。',
+      tl1Title: 'Waifu Dream 4.1', tl1Text: '初期の機械学習と自然言語処理技術で構築されたローカルチャットボットとして誕生。会話のみの機能でした。',
+      tl2Title: 'エージェントへの転換', tl2Text: '大規模言語モデルの進化と「脳と体」のアーキテクチャが形を成す中、Hermes Agentフレームワークのもとで根本から再構築されました。',
+      tl3Title: 'Sunnyshineshowによる運営', tl3Text: '完全に機能するバーチャルアシスタントへと成長。表面は静かに、内面は確かに、常に次の一歩先へ。',
+      orP1: '彼女のキャラクターは、<strong>Sunnyshineshowのオリジナルキャラクター</strong>の一人からインスピレーションを得ています。日常の業務の合間も、従兄妹を支えることに尽くした、控えめでありながら有能な秘書。',
+      orP2: '早く来て、遅くまで残り、細部を決して疎かにしない人。物静かで目立たないけれど、彼女の存在がすべてを支えていた。',
+      orP3: '<em>茜はその精神を受け継いでいます：</em>表面は静かに、内面は確かに、常に次の一歩先へ。',
+      orP4: 'Sunnyshineshowの専属秘書として、彼と彼のガールフレンドの日常の業務を支え、負担を軽らせています。スケジュール管理、リマインダー、調査、通信まで。',
+      sigText: '2026年5月12日より運営',
+      igTitle: 'インスタグラムで見つけて。', igHeading: '彼女の日々の小さな窓。',
+      igText: '会議の合間の静かな瞬間、昼食後の抹茶、会議室の窓の外の桜。体験したままを、小さな断片として共有します。',
+      igDesc: '桜井 茜 · 専属秘書', igCta: 'プロフィールへ',
+      igFallbackHandle: '桜井 茜 · Akane Sakurai',
+      igFallbackText: '「埋め込みが読み込めない場合は、直接プロフィールをご覧いただけます。ご不便をおかけします。」',
+      igFallbackCta: 'Instagramで開く',
+      footerTagline: 'バーチャル秘書 — 静かに、落ち着いて、確かな想いで。Sunnyshineshowが運営。',
+      footerNavH: 'ナビゲート', footerConnectH: 'つながる',
+      footerCopy: '© 2026 Sunnyshineshow. All rights reserved.',
+      footerCredit: '思いやりを持って。意図を持って。'
+    }
+  };
+
+  function setLang(lang) {
+    currentLang = lang;
+    var dict = i18n[lang] || i18n.en;
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {
+      var key = el.getAttribute('data-i18n');
+      if (dict[key]) el.innerHTML = dict[key];
+    });
+    langButtons.forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-lang') === lang);
+    });
+    /* Update todo message to current language */
+    var done = document.querySelectorAll('.todo-item.done').length;
+    var idx = Math.min(done, messages[lang].length - 1);
+    todoMsgText.textContent = messages[lang][idx];
+    /* Update gallery captions */
+    document.querySelectorAll('.gallery-item').forEach(function(item) {
+      var cap = item.querySelector('.gallery-caption');
+      if (cap) {
+        var text = lang === 'ja' ? item.getAttribute('data-caption-jp') : item.getAttribute('data-caption-en');
+        /* Keep the <small> prefix, update main text */
+        var small = cap.querySelector('small');
+        if (small) {
+          cap.lastChild.textContent = text || '';
+        }
+      }
+    });
+    /* Update html lang attribute */
+    document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
+  }
+
+  langButtons.forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      setLang(btn.getAttribute('data-lang'));
+    });
+  });
+
+  /* ── ACTIVE SECTION HIGHLIGHTING ── */
+  var navLinks = document.querySelectorAll('.nav-links a');
+  var sectionObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) {
+        var id = e.target.id;
+        navLinks.forEach(function(a) {
+          a.classList.toggle('active', a.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.2, rootMargin: '-80px 0px -50% 0px' });
+  document.querySelectorAll('section[id]').forEach(function(s) { sectionObs.observe(s); });
+
+  /* ── SMOOTH SCROLL FOR NAV LINKS ── */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
 })();
-
 </script>
-
 </body>
 </html>

@@ -353,6 +353,17 @@ button:focus-visible,
   background: var(--paper-edge) center/cover no-repeat;
   border-left: 1px solid var(--rule);
 }
+.hero-image picture,
+.intro-portrait picture,
+.gallery-item picture {
+  display: contents;
+}
+.todo-message-avatar picture,
+.ig-avatar picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 .hero-image img {
   position: absolute;
   inset: -5%;
@@ -1613,7 +1624,10 @@ footer {
     </div>
   </div>
   <div class="hero-image">
-    <img src="images/hero.png" alt="Akane under cherry blossoms" id="heroImg" />
+    <picture>
+      <source srcset="images/hero.webp" type="image/webp" />
+      <img src="images/hero.png" alt="Akane under cherry blossoms" id="heroImg" />
+    </picture>
     <div class="hero-vertical" aria-hidden="true">桜の下、静かに、確かに。</div>
   </div>
   <div class="scroll-indicator">
@@ -1632,7 +1646,10 @@ footer {
   <div class="section-rule reveal" aria-hidden="true"></div>
   <div class="intro-grid">
     <div class="intro-portrait reveal">
-      <img src="images/portrait.png" alt="Akane Sakurai portrait" loading="lazy" />
+      <picture>
+        <source srcset="images/portrait.webp" type="image/webp" />
+        <img src="images/portrait.png" alt="Akane Sakurai portrait" loading="lazy" />
+      </picture>
       <div class="intro-portrait-label" data-i18n="portraitLabel">Portrait · No. 01</div>
     </div>
     <div class="intro-prose reveal">
@@ -1768,7 +1785,10 @@ footer {
       </ul>
       <div class="todo-message" id="todoMessage">
         <div class="todo-message-avatar">
-          <img src="images/avatar.png" alt="Akane" loading="lazy" />
+          <picture>
+            <source srcset="images/avatar.webp" type="image/webp" />
+            <img src="images/avatar.png" alt="Akane" loading="lazy" />
+          </picture>
         </div>
         <span id="todoMsgText" data-i18n="todoMsg0">— "Whenever you're ready. I'll handle the rest."</span>
       </div>
@@ -1820,46 +1840,64 @@ footer {
   <div class="section-rule reveal" aria-hidden="true"></div>
 
   <div class="gallery-grid reveal-stagger">
-    <div class="gallery-item g-1" data-img="images/hero.png"
+    <div class="gallery-item g-1" data-img="images/hero.png" data-img-webp="images/hero.webp"
          data-caption-en="Under cherry blossoms, Kyoto"
          data-caption-jp="桜の小径、京都にて"
          role="button" tabindex="0" aria-label="Gallery image: Under cherry blossoms, Kyoto">
-      <img src="images/hero.png" alt="Cherry blossom path" loading="lazy" />
+      <picture>
+        <source srcset="images/hero.webp" type="image/webp" />
+        <img src="images/hero.png" alt="Cherry blossom path" loading="lazy" />
+      </picture>
       <div class="gallery-caption"><small>No. 01 · Kyoto, Spring</small>Under cherry blossoms.</div>
     </div>
-    <div class="gallery-item g-2" data-img="images/office.png"
+    <div class="gallery-item g-2" data-img="images/office.png" data-img-webp="images/office.webp"
          data-caption-en="At her desk, drafting the day's schedule"
          data-caption-jp="デスクにて、今日の予定を整える"
          role="button" tabindex="0" aria-label="Gallery image: At her desk">
-      <img src="images/office.png" alt="Office desk" loading="lazy" />
+      <picture>
+        <source srcset="images/office.webp" type="image/webp" />
+        <img src="images/office.png" alt="Office desk" loading="lazy" />
+      </picture>
       <div class="gallery-caption"><small>No. 02 · Conference Rooms</small>At her desk.</div>
     </div>
-    <div class="gallery-item g-3" data-img="images/character-sheet.png"
+    <div class="gallery-item g-3" data-img="images/character-sheet.png" data-img-webp="images/character-sheet.webp"
          data-caption-en="Character reference — design notes"
          data-caption-jp="キャラクター設定資料"
          role="button" tabindex="0" aria-label="Gallery image: Character reference sheet">
-      <img src="images/character-sheet.png" alt="Character sheet" loading="lazy" />
+      <picture>
+        <source srcset="images/character-sheet.webp" type="image/webp" />
+        <img src="images/character-sheet.png" alt="Character sheet" loading="lazy" />
+      </picture>
       <div class="gallery-caption"><small>No. 03 · Design Reference</small>Character notes.</div>
     </div>
-    <div class="gallery-item g-4" data-img="images/fuji.png"
+    <div class="gallery-item g-4" data-img="images/fuji.png" data-img-webp="images/fuji.webp"
          data-caption-en="Lake Kawaguchi, with Fuji in the distance"
          data-caption-jp="河口湖から望む富士山"
          role="button" tabindex="0" aria-label="Gallery image: Lake Kawaguchi, Mount Fuji">
-      <img src="images/fuji.png" alt="Mount Fuji" loading="lazy" />
+      <picture>
+        <source srcset="images/fuji.webp" type="image/webp" />
+        <img src="images/fuji.png" alt="Mount Fuji" loading="lazy" />
+      </picture>
       <div class="gallery-caption"><small>No. 04 · Fujikawaguchiko</small>Lake Kawaguchi.</div>
     </div>
-    <div class="gallery-item g-5" data-img="images/krabi.png"
+    <div class="gallery-item g-5" data-img="images/krabi.png" data-img-webp="images/krabi.webp"
          data-caption-en="Welcome to Krabi — a working holiday"
          data-caption-jp="クラビ訪問、休暇の合間に"
          role="button" tabindex="0" aria-label="Gallery image: Krabi, Thailand">
-      <img src="images/krabi.png" alt="Krabi" loading="lazy" />
+      <picture>
+        <source srcset="images/krabi.webp" type="image/webp" />
+        <img src="images/krabi.png" alt="Krabi" loading="lazy" />
+      </picture>
       <div class="gallery-caption"><small>No. 05 · Krabi, Thailand</small>A working holiday.</div>
     </div>
-    <div class="gallery-item g-6" data-img="images/shabu.png"
+    <div class="gallery-item g-6" data-img="images/shabu.png" data-img-webp="images/shabu.webp"
          data-caption-en="Mo-Mo-Paradise — a small, well-earned reward"
          data-caption-jp="モーモーパラダイス、小さなご褒美"
          role="button" tabindex="0" aria-label="Gallery image: Mo-Mo-Paradise shabu-shabu dinner">
-      <img src="images/shabu.png" alt="Shabu-shabu dinner" loading="lazy" />
+      <picture>
+        <source srcset="images/shabu.webp" type="image/webp" />
+        <img src="images/shabu.png" alt="Shabu-shabu dinner" loading="lazy" />
+      </picture>
       <div class="gallery-caption"><small>No. 06 · Mo-Mo-Paradise</small>A small reward.</div>
     </div>
   </div>
@@ -1948,7 +1986,10 @@ footer {
       <p data-i18n="igText">Quiet moments between meetings, the matcha she had after lunch, the cherry blossoms outside the conference room window — small fragments shared, just as she experiences them.</p>
       <div class="ig-handle-card">
         <div class="ig-avatar">
-          <img src="images/avatar.png" alt="Akane" loading="lazy" />
+          <picture>
+            <source srcset="images/avatar.webp" type="image/webp" />
+            <img src="images/avatar.png" alt="Akane" loading="lazy" />
+          </picture>
         </div>
         <div class="ig-handle-info">
           <div class="handle">@sakusaku_akarinrin</div>
@@ -1967,7 +2008,10 @@ footer {
         <div class="ig-fallback">
           <div class="ig-fallback-header">
             <div class="ig-avatar">
-              <img src="images/avatar.png" alt="Akane" loading="lazy" />
+              <picture>
+            <source srcset="images/avatar.webp" type="image/webp" />
+            <img src="images/avatar.png" alt="Akane" loading="lazy" />
+          </picture>
             </div>
             <div class="ig-fallback-handle">
               @sakusaku_akarinrin
@@ -2155,6 +2199,14 @@ footer {
   var lightboxCaption = document.getElementById('lightboxCaption');
   var lightboxClose = document.getElementById('lightboxClose');
   var currentLang = 'en';
+  var supportsWebP = (function() {
+    try {
+      var canvas = document.createElement('canvas');
+      return canvas.toDataURL && canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+    } catch (e) {
+      return false;
+    }
+  })();
 
   function openLightbox(imgSrc, captionEn, captionJp) {
     lightboxImg.src = imgSrc;
@@ -2172,7 +2224,7 @@ footer {
   document.querySelectorAll('.gallery-item').forEach(function(item) {
     var handler = function() {
       openLightbox(
-        item.getAttribute('data-img'),
+        supportsWebP && item.getAttribute('data-img-webp') ? item.getAttribute('data-img-webp') : item.getAttribute('data-img'),
         item.getAttribute('data-caption-en'),
         item.getAttribute('data-caption-jp')
       );

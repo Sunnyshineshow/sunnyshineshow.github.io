@@ -116,19 +116,16 @@
       position: relative;
       display: grid;
       place-items: center;
-      width: 84px;
-      height: 84px;
+      width: 92px;
+      height: 92px;
       margin: auto;
-      border: 1px solid rgba(255,255,255,.4);
       border-radius: 50%;
-      font-family: var(--display);
-      font-size: 28px;
-      letter-spacing: -.08em;
     }
+    .preloader-monogram img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .preloader-monogram::after {
       content: "";
       position: absolute;
-      inset: 6px;
+      inset: -7px;
       border: 1px dashed var(--rose);
       border-radius: inherit;
       animation: rotateSeal 8s linear infinite;
@@ -176,17 +173,13 @@
       text-decoration: none;
     }
     .brand-mark {
-      display: grid;
-      place-items: center;
-      width: 38px;
-      height: 38px;
-      border: 1px solid currentColor;
+      display: block;
+      flex: 0 0 auto;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      font-family: var(--display);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: -.08em;
     }
+    .brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .brand-copy { display: grid; line-height: 1.15; }
     .brand-copy strong { font-family: var(--display); font-size: 13px; font-weight: 600; letter-spacing: .04em; }
     .brand-copy span { font-family: var(--mono); font-size: 8px; letter-spacing: .14em; opacity: .72; text-transform: uppercase; }
@@ -414,7 +407,8 @@
       text-transform: uppercase;
       animation: rotateSeal 18s linear infinite;
     }
-    .hero-seal::after { content: "AII"; position: absolute; font-family: var(--display); font-size: 30px; letter-spacing: -.07em; animation: rotateSeal 18s linear infinite reverse; }
+    .hero-seal > span { max-width: 92px; line-height: 1.45; }
+    .hero-seal img { position: absolute; width: 62%; height: 62%; object-fit: contain; filter: drop-shadow(0 6px 16px rgba(0,0,0,.28)); animation: rotateSeal 18s linear infinite reverse; }
     .hero-index {
       position: absolute;
       right: 0;
@@ -781,7 +775,8 @@
     .closing { position: relative; overflow: hidden; color: var(--white); background: var(--ink); text-align: center; }
     .closing::before { content: ""; position: absolute; inset: 0; opacity: .12; background-image: linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px); background-size: 80px 80px; }
     .closing-shell { position: relative; z-index: 2; display: grid; justify-items: center; max-width: 980px; margin: 0 auto; }
-    .closing-mark { display: grid; place-items: center; width: 76px; aspect-ratio: 1; margin-bottom: 30px; border: 1px solid var(--rose); border-radius: 50%; font-family: var(--display); font-size: 24px; }
+    .closing-mark { display: block; width: 86px; aspect-ratio: 1; margin-bottom: 30px; border-radius: 50%; }
+    .closing-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .closing h2 { margin: 0; font-family: var(--display); font-size: clamp(48px, 7vw, 100px); font-weight: 500; letter-spacing: -.055em; line-height: .98; }
     .closing p { max-width: 680px; margin: 28px 0 0; color: rgba(255,255,255,.66); }
     .closing .hero-actions { justify-content: center; }
@@ -949,7 +944,7 @@
   <div class="scroll-progress" aria-hidden="true"></div>
   <div class="preloader" aria-hidden="true">
     <div class="preloader-mark">
-      <div class="preloader-monogram">AII</div>
+      <div class="preloader-monogram"><img src="images/aii/institute.png?v=20260720b" alt="" width="256" height="256"></div>
       <div class="preloader-copy">Establishing verified context</div>
       <div class="preloader-line"></div>
     </div>
@@ -958,7 +953,7 @@
   <header class="site-header" id="siteHeader">
     <div class="nav-shell">
       <a class="brand" href="#top" aria-label="Akane Institute of Intelligence home">
-        <span class="brand-mark">AII</span>
+        <span class="brand-mark"><img src="images/aii/institute.png?v=20260720b" alt="" width="256" height="256"></span>
         <span class="brand-copy">
           <strong>Akane Institute</strong>
           <span>of Intelligence</span>
@@ -996,7 +991,7 @@
             <img src="images/aii/group.webp" alt="Six members of the Akane Institute of Intelligence gathered in a bright professional office" width="1448" height="1086" fetchpriority="high">
           </div>
           <div class="hero-label" aria-hidden="true"><span>Active roster</span><strong>06 members</strong><span>One verified outcome</span></div>
-          <div class="hero-seal" aria-hidden="true">Carefully prepared · Clearly assigned ·</div>
+          <div class="hero-seal" aria-hidden="true"><span>Carefully prepared · Clearly assigned ·</span><img src="images/aii/institute.png?v=20260720b" alt="" width="256" height="256"></div>
           <div class="hero-index" aria-hidden="true">Institute visual / 2026</div>
         </div>
       </div>
@@ -1193,7 +1188,7 @@
 
     <section class="section closing" id="contact" aria-labelledby="closing-title">
       <div class="closing-shell">
-        <div class="closing-mark reveal" aria-hidden="true">AII</div>
+        <div class="closing-mark reveal" aria-hidden="true"><img src="images/aii/institute.png?v=20260720b" alt="" width="256" height="256"></div>
         <h2 class="reveal" id="closing-title">Bring the objective.<br>We will organize the work.</h2>
         <p class="reveal reveal-delay-1">The Institute begins with a clear request and ends with a result that is ready to review, use, and trust.</p>
         <div class="hero-actions reveal reveal-delay-2">
